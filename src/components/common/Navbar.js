@@ -11,8 +11,10 @@ const { useToken } = theme;
 const { useBreakpoint } = Grid;
 
 import DropdownMenu from "@/components/common/DropdownMenu"
+import { useUserStore } from "@/store/store";
 
 export default function App() {
+  const {isLogin} = useUserStore();
   const { token } = useToken();
   const screens = useBreakpoint();
 
@@ -97,7 +99,11 @@ export default function App() {
           <Link href={"/signup"}>
           <Button type="primary">Sign up</Button>
           </Link>
-          <DropdownMenu/>
+          {
+            isLogin?(
+              <DropdownMenu/>
+            ):null
+          }
         </Space>
       </div>
     </nav>

@@ -10,13 +10,29 @@ const { useBreakpoint } = Grid;
 const { Text, Title } = Typography;
 
 import Link from "next/link";
-
+import axios from "axios";
+import toast from "react-hot-toast"
+import { useRouter } from "next/navigation";
 export default function SignUpPage() {
+  const router = useRouter();
   const { token } = useToken();
   const screens = useBreakpoint();
 
-  const onFinish = (values) => {
+  const onFinish = async(values) => {
     console.log("Received values of form: ", values);
+
+    const request = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/signup`, values);
+
+    console.log(request)
+
+   
+    if (request.data.type == "success") {
+      toast.success(request.data.message);
+      router.push("/login")
+    }
+    else {
+      toast.error(request.data.message);
+    }
     
   };
 
@@ -71,15 +87,15 @@ export default function SignUpPage() {
           requiredMark="optional"
         >
           <Form.Item
-            name="name"
+            name="username"
             rules={[
               {
                 required: true,
-                message: "Please input your Name!",
+                message: "Please input your Username!",
               },
             ]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Name" />
+            <Input prefix={<UserOutlined />} placeholder="Username" />
           </Form.Item>
           <Form.Item
             name="email"

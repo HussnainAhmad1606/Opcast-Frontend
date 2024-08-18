@@ -8,15 +8,39 @@ import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
 const { useToken } = theme;
 const { useBreakpoint } = Grid;
 const { Text, Title } = Typography;
-
+import toast from "react-hot-toast"
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUserStore } from "@/store/store";
+import axios from "axios";
 
 export default function SignUpPage() {
+  const { setUsername, setUserId, setEmail, setIsLogin} = useUserStore();
   const { token } = useToken();
   const screens = useBreakpoint();
+  const router = useRouter();
 
-  const onFinish = (values) => {
+
+  const onFinish = async(values) => {
     console.log("Received values of form: ", values);
+
+    const request = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, values);
+
+    console.log(request)
+   
+    if (request.data.type == "success") {
+      toast.success(request.data.message);
+      localStorage.setItem("token", request.data.token);
+      localStorage.setItem("refreshToken", request.data.refreshToken);
+      setUsername(values.username);
+      setUserId(request.data.userId);
+      setIsLogin(true);
+      setEmail(values.email);
+      router.push("/dashboard");
+    }
+    else {
+      toast.error(request.data.message);
+    }
     
   };
 
@@ -72,16 +96,16 @@ export default function SignUpPage() {
         >
          
           <Form.Item
-            name="email"
+            name="username"
             rules={[
               {
-                type: "email",
+                type: "text",
                 required: true,
-                message: "Please input your Email!",
+                message: "Please enter your username!",
               },
             ]}
           >
-            <Input prefix={<MailOutlined />} placeholder="Email" />
+            <Input prefix={<MailOutlined />} placeholder="Username" />
           </Form.Item>
           <Form.Item
             name="password"
