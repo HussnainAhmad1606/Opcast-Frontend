@@ -2,25 +2,45 @@
 import React from "react";
 
 import { Button, Checkbox, Form, Grid, Input, theme, Typography } from "antd";
+import ImgInput from "@/components/ImgInput"
 
-import { LockOutlined, MailOutlined } from "@ant-design/icons";
+import api from "@/utils/api";
+import { toast } from "react-hot-toast";
+import { useUserStore } from "@/store/store";
 
 const { useToken } = theme;
 const { useBreakpoint } = Grid;
 const { Text, Title, Link } = Typography;
 
+
+
+
 export default function App() {
   const { token } = useToken();
   const screens = useBreakpoint();
+  const {coverImage } = useUserStore();
 
     interface SubmittedForm {
         name: string;
         description: string;
         cover: string;
     }
-  const onFinish = (values:SubmittedForm) => {
-    console.log("Received values of form: ", values);
+  const onFinish = async(values:SubmittedForm) => {
     
+    let data = {
+      name: values.name,
+      description: values.description,
+      cover: coverImage
+    }
+    
+    console.log("Received values of form: ", data);
+    const request = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/series/new-series`, data);
+    if (request.data.type =="success"){
+      toast.success(request.data.message);
+    }
+    else {
+      toast.error(request.data.message);
+    }
   };
 
   const styles = {
@@ -98,21 +118,11 @@ export default function App() {
               placeholder="Series Description"
             />
           </Form.Item>
-          <Form.Item
-            name="cover"
-            rules={[
-              {
-                required: true,
-                message: "Please input series cover!",
-              },
-            ]}
-          >
-            <Input
-              type="cover"
-              placeholder="Series Cover"
-            />
-          </Form.Item>
+  
           
+          <Form.Item style={{ marginBottom: "0px" }}>
+            <ImgInput/>
+          </Form.Item>
           <Form.Item style={{ marginBottom: "0px" }}>
             <Button block="true" type="primary" htmlType="submit">
              Add series
@@ -123,3 +133,7 @@ export default function App() {
     </section>
   );
 }
+
+
+
+

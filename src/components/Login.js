@@ -24,6 +24,7 @@ export default function SignUpPage() {
   const onFinish = async(values) => {
     console.log("Received values of form: ", values);
 
+   try {
     const request = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, values);
 
     console.log(request)
@@ -41,9 +42,13 @@ export default function SignUpPage() {
     else {
       toast.error(request.data.message);
     }
-    
-  };
+   }
+  catch(error) {
 
+    toast.error(error.response.data.message)
+
+  }
+  }
   const styles = {
     container: {
       margin: "0 auto",

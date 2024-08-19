@@ -2,6 +2,7 @@ import React from 'react'
 import { Button, Dropdown, Space, Avatar } from 'antd';
 
 import { UserOutlined, StarOutlined, LogoutOutlined, DashboardOutlined } from '@ant-design/icons';
+import Link from 'next/link';
 
 const items = [
     {
@@ -15,9 +16,9 @@ const items = [
     {
       key: '2',
       label: (
-        <a target="_blank" rel="noopener noreferrer" href="https://www.antgroup.com">
+        <Link href={"/dashboard"}>
           <DashboardOutlined className="mx-1" />Dashboard
-        </a>
+        </Link>
       ),
     },
     {

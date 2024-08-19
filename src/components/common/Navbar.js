@@ -95,14 +95,18 @@ export default function App() {
           />
         </div>
         <Space>
-          {screens.md ? <Link href={"/login"}><Button type="text">Log in</Button> </Link>: ""}
-          <Link href={"/signup"}>
-          <Button type="primary">Sign up</Button>
-          </Link>
+          
           {
             isLogin?(
               <DropdownMenu/>
-            ):null
+            ):(
+              <>
+               <Link href={"/login"}><Button type="text">Log in</Button> </Link>
+          <Link href={"/signup"}>
+          <Button type="primary">Sign up</Button>
+          </Link>
+              </>
+            )
           }
         </Space>
       </div>

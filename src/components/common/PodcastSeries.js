@@ -1,12 +1,12 @@
 "use client"
 import React from "react";
 
-import { Card, Flex, theme, Typography } from "antd";
+import { Card, Flex, theme, Typography, Button } from "antd";
 
 const { useToken } = theme;
 const { Text, Link } = Typography;
 
-export default function App() {
+export default function App({series}) {
   const { token } = useToken();
 
   const styles = {
@@ -22,17 +22,28 @@ export default function App() {
     <Flex justify="center">
     <Card style={styles.card}>
       <Flex vertical gap="middle">
-        <img
-          alt="Card image"
-          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        />
+        {
+          series.cover != ""? (
+            <img
+            alt={`${series.name} cover image`}
+            src={series.cover}
+          />
+          ):(
+            <h1>No Cover Image</h1>
+          )
+        }
+      
         <Flex vertical gap={token.marginXXS}>
-          <Text strong>Card title</Text>
+          <Text strong>{series.name}</Text>
           <Text style={styles.paragraph}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit interdum
-            hendrerit ex vitae sodales.
+           {series.description}
           </Text>
         </Flex>
+
+        <Button type="primary" href={`/series/${series._id}`}>
+
+          <Text type="primary">View Series</Text>
+        </Button>
       </Flex>
     </Card>
     </Flex>

@@ -1,5 +1,5 @@
 "use client"
-import React from "react";
+import React,  {useEffect, useState} from "react";
 
 import { Button, Divider, Grid, Space, theme, Typography } from "antd";
 
@@ -8,10 +8,31 @@ const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
 import PodcastSeries from "@/components/common/PodcastSeries"
 import Link from "next/link";
+import api from "@/utils/api";
+import { toast } from "react-hot-toast";
 
 export default function App() {
+  const [series, setSeries] = useState([])
   const { token } = useToken();
   const screens = useBreakpoint();
+
+  const getUserSeries = async() => {
+    const request = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/series/get-user-series`);
+    if (request.data.type =="success"){
+      console.log(request.data)
+      setSeries(request.data.series)
+      toast.success(request.data.message);
+    }
+    else {
+      toast.error(request.data.message);
+    }
+  }
+
+  useEffect(() => {
+    getUserSeries();
+  }, [])
+  
+  
 
   const styles = {
     container: {
@@ -76,8 +97,11 @@ export default function App() {
       <div style={styles.section}>
         <div style={styles.container}>
          
-            <PodcastSeries/>
-         
+{
+  series.length > 0 ? series.map((series, index) => {
+    return <PodcastSeries key={index} series={series} />
+  }) :null
+}         
         </div>
       </div>
     </>
