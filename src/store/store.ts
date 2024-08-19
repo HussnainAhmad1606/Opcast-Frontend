@@ -6,6 +6,8 @@ export const useUserStore = create((set) => ({
   userId: "",
   isLogin: false,
   coverImage: "",
+  audioURL: "",
+  setAudioURL: (url: string) => set({ audioURL: url }),
   setCoverImage: (url: string) => set({ coverImage: url }),
   setIsLogin: (newIsLogin: boolean) => set({ isLogin: newIsLogin }),
   setUsername: (newUsername: string) => set({ username: newUsername }),

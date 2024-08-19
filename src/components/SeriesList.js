@@ -1,39 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Avatar, Button, List, Skeleton } from 'antd';
+import Link from 'next/link';
 
 const count = 3;
 
-const App = ({seriesId}) => {
-  const [initLoading, setInitLoading] = useState(true);
-  const [list, setList] = useState([{title: "Test", description: "Desc", id: "5458043820"}]);
+const App = ({podcasts}) => {
 
 
-
-  const getPodcastsList = async() => {
-    setInitLoading(false);
-  }
-
-  useEffect(() => {
-    getPodcastsList();
-  }, [])
   
 
   return (
     <List
       className="demo-loadmore-list w-full"
-      loading={initLoading}
+  
       itemLayout="horizontal"
-      dataSource={list}
+      dataSource={podcasts}
       renderItem={(item) => (
         <List.Item
         className='w-[180%]'
-          actions={[<a key="list-loadmore-edit">edit</a>, <a key="list-loadmore-more">more</a>]}
+          actions={[<Link href={`/podcast/${item._id}`} key="list-loadmore-edit">Open</Link>]}
         >
           <Skeleton title={false} loading={item.loading} active>
             <List.Item.Meta
             //   avatar={<Avatar src={item.picture.large} />}
               title={<a href="https://ant.design">{item.title}</a>}
-              description="Ant Design, a design language for background applications, is refined by Ant UED Team"
+              description={item.description}
             />
            
           </Skeleton>
