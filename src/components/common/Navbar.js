@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image"; 
 import { Button, Grid, Menu, Space, theme } from "antd";
 
@@ -12,11 +12,32 @@ const { useBreakpoint } = Grid;
 
 import DropdownMenu from "@/components/common/DropdownMenu"
 import { useUserStore } from "@/store/store";
+import axios from "axios";
 
 export default function App() {
-  const {isLogin} = useUserStore();
+  const {setIsLogin, isLogin, setUserId, setUsername} = useUserStore();
   const { token } = useToken();
   const screens = useBreakpoint();
+
+  const verificationToken =async () => {
+
+    const req = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/verify`, {
+      token: localStorage.getItem("token")
+    })
+
+    const res = await req.data;
+    // console.log(res)
+
+    if (res.type == "success") {
+      setIsLogin(true);
+      setUserId(res.user._id)
+      setUsername(res.user.username);
+    }
+  }
+
+  useEffect(() => {
+    verificationToken();
+  }, [])
 
   const menuItems = [
     {
