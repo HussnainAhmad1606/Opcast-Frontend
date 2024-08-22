@@ -21,7 +21,7 @@ export default function App() {
     if (request.data.type =="success"){
       console.log(request.data)
       setSeries(request.data.series)
-      toast.success(request.data.message);
+     
     }
     else {
       toast.error(request.data.message);

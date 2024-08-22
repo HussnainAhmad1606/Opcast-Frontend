@@ -39,8 +39,7 @@ export default function App({series}) {
            {series.description}
           </Text>
         </Flex>
-
-        <Button type="primary" href={`/series/${series._id}`}>
+        <Button href={`/series/${series._id}`} type="primary" >
 
           <Text type="primary">View Series</Text>
         </Button>
