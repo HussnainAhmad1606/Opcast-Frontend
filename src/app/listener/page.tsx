@@ -1,44 +1,62 @@
+// pages/listener.js
 "use client"
-import { useEffect, useRef } from 'react';
-import useWebSocket from '../../hooks/useWebSocket';
+import { useState, useEffect } from 'react';
+import io from 'socket.io-client';
+import { Device } from 'mediasoup-client';
 
-const Listener = () => {
-  const audioContextRef = useRef(null);
-  const handleAudioData = (event) => {
-    if (audioContextRef.current && event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const arrayBuffer = reader.result;
-        audioContextRef.current.decodeAudioData(arrayBuffer, (buffer) => {
-          const source = audioContextRef.current.createBufferSource();
-          source.buffer = buffer;
-          source.connect(audioContextRef.current.destination);
-          source.start(0);
-        }, (error) => {
-          console.error('Error decoding audio data:', error);
-        });
-      };
-      reader.readAsArrayBuffer(event.data);
-    } else {
-      console.error('Unexpected data format:', event.data);
-    }
-  };
-  
-
-  const { sendMessage } = useWebSocket('ws://localhost:3000', handleAudioData);
+const ListenerPage = () => {
+  const [device, setDevice] = useState(null);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // Create an AudioContext
-    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    const socket = io('http://localhost:3002');
+    setSocket(socket);
+
+    socket.on('connect', async () => {
+      const device = new Device();
+      setDevice(device);
+    });
 
     return () => {
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
+      socket.disconnect();
     };
   }, []);
 
-  return <div>Listener</div>;
+  const startListening = async () => {
+    if (!device) return;
+
+    // Create Consumer Transport
+    const { routerRtpCapabilities } = await new Promise((resolve) => {
+      socket.emit('createConsumerTransport', resolve);
+    });
+
+    await device.load({ routerRtpCapabilities });
+
+    const consumerTransport = device.createRecvTransport(await new Promise((resolve) => {
+      socket.emit('createConsumerTransport', resolve);
+    }));
+
+    consumerTransport.on('connect', ({ dtlsParameters }, callback) => {
+      socket.emit('connectConsumerTransport', { dtlsParameters }, callback);
+    });
+
+    const { rtpCapabilities } = device;
+    const { id, producerId, kind, rtpParameters } = await new Promise((resolve) => {
+      socket.emit('consume', { rtpCapabilities }, resolve);
+    });
+
+    const consumer = await consumerTransport.consume({ id, producerId, kind, rtpParameters });
+
+    const audioElement = new Audio();
+    audioElement.srcObject = new MediaStream([consumer.track]);
+    audioElement.play();
+  };
+
+  return (
+    <div>
+      <button onClick={startListening}>Start Listening</button>
+    </div>
+  );
 };
 
-export default Listener;
+export default ListenerPage;

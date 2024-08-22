@@ -91,27 +91,26 @@ export default function App({params}:any) {
     }
   };
 
-  // Handle time update to detect replay (seek backward)
+
   const handleTimeUpdate = () => {
-    
     
     const currentTime = audioRef.current.audio.current.currentTime;
 
 
-    // Detect if the user has sought backward
+ 
     if (currentTime < lastTimeRef.current && !replayed) {
       console.log("replayed")
       trackEvent("replay");
 
-      setReplayed(true); // Mark that the replay has been tracked
+      setReplayed(true); 
     }
 
-    lastTimeRef.current = currentTime; // Update the last time reference
+    lastTimeRef.current = currentTime;
   };
 
-  // Handle the audio ending to detect replay from the start
+
   const handleEnded = () => {
-    setReplayed(false); // Allow replay to be tracked again if the audio is restarted
+    setReplayed(false); 
   };
 
 
@@ -164,6 +163,10 @@ export default function App({params}:any) {
       console.log(request.data)
   }
 
+  const downloadedPodcast = async() => {
+    trackEvent("download");
+  }
+
   useEffect(() => {
     getSinglePodcast();
     setDeviceInfo(getDeviceInfo(navigator.userAgent))
@@ -192,9 +195,84 @@ export default function App({params}:any) {
       value: podcastStats['totalReplays'],   
     }
   ];
+  const podcastDetails = [
+    {
+      id: 1,
+      name: "Host(s)",
+      value: podcast['host'],  
+    },
+    {
+      id: 2,
+      name: "Category",
+      value: podcast['category'],   
+    },
+    {
+      id: 3,
+      name: "Guest(s)",
+      value: podcast['guest'].length!=0 ? podcast['guest'] : "No",
+    },
+    {
+      id: 4,
+      name: "Type",
+      value: podcast['isLive'] ? "Live" : "Recorded"   
+    },
+    {
+      id: 5,
+      name: "Publish Date",
+      value: new Date(podcast['publishDate']).toLocaleDateString()   
+    }
+  ];
   
   return (
     <div style={{height: "150vh"}}>
+
+      
+<div className='m-10'>
+        <h1 className='font-bold text-3xl'>{podcast.title}</h1>
+        <p>{podcast.description}</p>
+
+        <Card>
+
+<h1 style={{textAlign: "center"}} className='text-center font-bold text-2xl my-5'>Podcast Details</h1>
+
+
+      <div style={styles.container}>
+        <Row
+          gutter={[
+            {
+              xs: token.size,
+              sm: token.size,
+              md: token.size,
+              lg: token.sizeLG,
+              xl: token.sizeLG
+            },
+            token.size
+          ]}
+        >
+          {podcastDetails.map((stat) => (
+            <Col xs={24} sm={24} md={12} lg={6} xl={6}>
+              <Card bodyStyle={styles.card}>
+                <Statistic
+                  title={stat.name}
+                  value={stat.value}
+                  precision={stat.precision}
+                  valueStyle={{
+                    color:
+                    stat.changeType === "increase"
+                        ? token.colorSuccessTextActive
+                        : token.colorErrorTextActive
+                      }}
+                      
+                      />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+
+
+      </div>
+      </Card>
+      </div>
 
     <div style={styles.section}>
       <Card>
@@ -252,10 +330,6 @@ export default function App({params}:any) {
       </div>
 
 
-      <div className='m-5'>
-        <h1 className='font-bold text-3xl'>{podcast.title}</h1>
-        <p>{podcast.description}</p>
-      </div>
 
 
       <AudioPlayer
@@ -266,7 +340,9 @@ export default function App({params}:any) {
     onPlay={handlePlay}
     onListen={handleTimeUpdate}
     onEnded={handleEnded}
-    // other props here
+   customAdditionalControls={[
+      <a onClick={downloadedPodcast} download href={podcast.audioURL} style={{padding: "5px 20px",backgroundColor: "#4096ff"}}>Download</a>
+   ]}
     />
     </div>
     </div>

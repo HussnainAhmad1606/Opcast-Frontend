@@ -1,11 +1,11 @@
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
-// Register components for Chart.js
+
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const BrowserChart = ({ data }) => {
-  // Count occurrences of each browser
+
   const browserCounts = data.reduce((acc, item) => {
     acc[item.deviceType] = (acc[item.deviceType] || 0) + 1;
     return acc;

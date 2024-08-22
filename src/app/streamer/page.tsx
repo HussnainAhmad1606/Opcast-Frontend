@@ -1,50 +1,62 @@
+// pages/streamer.js
 "use client"
-import { useEffect, useRef } from 'react';
-import useWebSocket from '../../hooks/useWebSocket';
+import { useState, useEffect } from 'react';
+import io from 'socket.io-client';
+import { Device } from 'mediasoup-client';
 
-const Streamer = () => {
-  const { sendMessage } = useWebSocket('ws://localhost:3000');
-  const mediaRecorderRef = useRef(null);
-  const audioContextRef = useRef(null);
+const StreamerPage = () => {
+  const [device, setDevice] = useState(null);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const startStreaming = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const socket = io('http://localhost:3002');
+    setSocket(socket);
 
-        // Create an AudioContext
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-
-        // Create a MediaRecorder
-        mediaRecorderRef.current = new MediaRecorder(stream);
-
-        mediaRecorderRef.current.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            event.data.arrayBuffer().then((arrayBuffer) => {
-              sendMessage(arrayBuffer);
-            });
-          }
-        };
-
-        mediaRecorderRef.current.start(100); // Send data every 100ms
-      } catch (error) {
-        console.error('Error starting streaming:', error);
-      }
-    };
-
-    startStreaming();
+    socket.on('connect', async () => {
+      const device = new Device();
+      setDevice(device);
+    });
 
     return () => {
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.stop();
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
+      socket.disconnect();
     };
-  }, [sendMessage]);
+  }, []);
 
-  return <div>Streamer</div>;
+  const startStreaming = async () => {
+    if (!device) return;
+
+    // Create Producer Transport
+    const { routerRtpCapabilities } = await new Promise((resolve) => {
+      socket.emit('createProducerTransport', resolve);
+    });
+
+    await device.load({ routerRtpCapabilities });
+
+    const producerTransport = device.createSendTransport(await new Promise((resolve) => {
+      socket.emit('createProducerTransport', resolve);
+    }));
+
+    producerTransport.on('connect', ({ dtlsParameters }, callback) => {
+      socket.emit('connectProducerTransport', { dtlsParameters }, callback);
+    });
+
+    producerTransport.on('produce', async (parameters, callback) => {
+      const { id } = await new Promise((resolve) => {
+        socket.emit('produce', parameters, resolve);
+      });
+      callback({ id });
+    });
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const audioTrack = stream.getAudioTracks()[0];
+    await producerTransport.produce({ track: audioTrack });
+  };
+
+  return (
+    <div>
+      <button onClick={startStreaming}>Start Streaming</button>
+    </div>
+  );
 };
 
-export default Streamer;
+export default StreamerPage;
