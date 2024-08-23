@@ -13,11 +13,14 @@ const { useBreakpoint } = Grid;
 import DropdownMenu from "@/components/common/DropdownMenu"
 import { useUserStore } from "@/store/store";
 import axios from "axios";
+import { Router } from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function App() {
   const {setIsLogin, isLogin, setUserId, setUsername} = useUserStore();
   const { token } = useToken();
   const screens = useBreakpoint();
+  const router = useRouter();
 
   const verificationToken =async () => {
 
@@ -45,10 +48,6 @@ export default function App() {
       key: "home",
     },
     {
-      label: "Discover",
-      key: "discover",
-    },
-    {
       label: "About",
       key: "about",
     },
@@ -58,6 +57,12 @@ export default function App() {
   const onClick = (e) => {
     console.log("click ", e);
     setCurrent(e.key);
+    if (e.key == "home") {
+      router.push("/")
+    }
+    if (e.key == "about") {
+      router.push("/about")
+    }
   };
 
   const styles = {
@@ -101,7 +106,7 @@ export default function App() {
     <nav style={styles.header}>
       <div style={styles.container}>
         <div style={styles.menuContainer}>
-          <a style={styles.logo} href="#">
+          <a style={styles.logo} href="/">
             <h1 className="font-bold text-2xl">Opcast</h1>
           </a>
           <Menu

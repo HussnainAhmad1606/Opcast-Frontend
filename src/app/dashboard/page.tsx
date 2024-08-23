@@ -10,11 +10,14 @@ import PodcastSeries from "@/components/common/PodcastSeries"
 import Link from "next/link";
 import api from "@/utils/api";
 import { toast } from "react-hot-toast";
+import { useUserStore } from "@/store/store";
 
 export default function App() {
   const [series, setSeries] = useState([])
   const { token } = useToken();
   const screens = useBreakpoint();
+
+  const {setTotalEarnings} = useUserStore();
 
   const getUserSeries = async() => {
     const request = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/series/get-user-series`);
@@ -27,10 +30,25 @@ export default function App() {
       toast.error(request.data.message);
     }
   }
+  const getTotalEarnings = async() => {
+    const request = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/podcast/get-total-earnings`);
+    if (request.data.type =="success"){
+      console.log(request.data)
+      setTotalEarnings(request.data.totalEarnings)
+     
+    }
+    else {
+      toast.error(request.data.message);
+    }
+  }
 
   useEffect(() => {
     getUserSeries();
+    getTotalEarnings();
   }, [])
+
+
+
   
   
 

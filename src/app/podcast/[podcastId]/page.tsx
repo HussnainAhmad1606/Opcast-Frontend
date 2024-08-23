@@ -12,6 +12,7 @@ const { useBreakpoint } = Grid;
 const { Text } = Typography;
 import BrowserChart from '@/components/BrowserChart';
 import DeviceChart from '@/components/DeviceChart';
+import { useUserStore } from '@/store/store';
 
 
 
@@ -20,9 +21,16 @@ export default function App({params}:any) {
   const { token } = useToken();
   const screens = useBreakpoint();
   const audioRef = useRef(null);
+  const adAudioRef = useRef(null);
   const lastTimeRef = useRef(0);
   const [replayed, setReplayed] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({});
+
+
+  const [currentTime, setCurrentTime] = useState(0);
+
+
+  const {isAdPlaying, setIsAdPlaying} = useUserStore();
 
   const [devicesInfo,setDevicesInfo] = useState([
   { deviceType: 'desktop', browser: 'firefox' },
@@ -167,11 +175,49 @@ export default function App({params}:any) {
     trackEvent("download");
   }
 
+  const increaseEarnings = async(earnings:number) => {
+    const data= {
+      podcastId: podcastId,
+      earnings: earnings
+    }
+    console.log(data)
+    const request = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/podcast/increase-earnings`, data);
+    console.log(request.data)
+
+  }
+
+  const skipAd = () => {
+    adAudioRef.current.audio.current.pause();
+    const totalDuration = adAudioRef.current.audio.current;
+    const duration = totalDuration.duration;
+    console.log(currentTime)
+
+    if (duration > 0 && currentTime >= duration / 2) {
+      increaseEarnings(0.1);
+    } else {
+      console.log("no");
+    }
+    setIsAdPlaying(false);
+
+  }
+
+  const playAd = () => {
+    setIsAdPlaying(true);
+    adAudioRef.current.audio.current.play();
+  }
+
+
+  const handleListen = (e) => {
+    setCurrentTime(e.target.currentTime);
+  };
+
   useEffect(() => {
     getSinglePodcast();
     setDeviceInfo(getDeviceInfo(navigator.userAgent))
     trackEvent("view");
     getPodcastStatistics();
+
+    playAd();
   }, [])
   const stats = [
     {
@@ -209,7 +255,7 @@ export default function App({params}:any) {
     {
       id: 3,
       name: "Guest(s)",
-      value: podcast['guest'].length!=0 ? podcast['guest'] : "No",
+      value: podcast['guest']?.length!=0 ? podcast['guest'] : "No",
     },
     {
       id: 4,
@@ -220,6 +266,11 @@ export default function App({params}:any) {
       id: 5,
       name: "Publish Date",
       value: new Date(podcast['publishDate']).toLocaleDateString()   
+    },
+    {
+      id: 5,
+      name: "Earnings",
+      value: `${podcast['earnings']} PKR`,
     }
   ];
   
@@ -331,19 +382,35 @@ export default function App({params}:any) {
 
 
 
-
-      <AudioPlayer
-       className="audioPlayer"
-    autoPlay
-    src={podcast.audioURL}
-    ref={audioRef}
-    onPlay={handlePlay}
-    onListen={handleTimeUpdate}
-    onEnded={handleEnded}
-   customAdditionalControls={[
-      <a onClick={downloadedPodcast} download href={podcast.audioURL} style={{padding: "5px 20px",backgroundColor: "#4096ff"}}>Download</a>
-   ]}
-    />
+{
+  isAdPlaying?(
+    <AudioPlayer
+    className="audioPlayer"
+ autoPlay
+ src={'/AD/short_ad.mp3'}
+ ref={adAudioRef}
+ onEnded={skipAd}
+ onListen={handleListen}
+customAdditionalControls={[
+   <button onClick={skipAd}  style={{padding: "5px 20px",backgroundColor: "#4096ff"}}>Skip Ad</button>
+]}
+ />
+  ):(
+    <AudioPlayer
+    className="audioPlayer"
+ autoPlay
+ src={podcast.audioURL}
+ ref={audioRef}
+ onPlay={handlePlay}
+ onListen={handleTimeUpdate}
+ onEnded={handleEnded}
+customAdditionalControls={[
+   <a onClick={downloadedPodcast} download href={podcast.audioURL} style={{padding: "5px 20px",backgroundColor: "#4096ff"}}>Download</a>
+]}
+ />
+  )
+}
+     
     </div>
     </div>
   );

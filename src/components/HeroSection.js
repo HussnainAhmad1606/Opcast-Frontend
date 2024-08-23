@@ -6,7 +6,7 @@ function HeroSection() {
     <div id='heroSection'>
         <h1 className='font-bold text-5xl'>Your Ultimate Podcast Destination</h1>
         <p className='text-center my-5'>
-        OpCast is a dynamic podcast platform where you can upload, share, and explore a wide range of podcasts. Go live, connect with your audience in real-time, and track your podcast's performance with in-depth analytics.
+        OpCast is a dynamic podcast platform where you can upload, share, and explore a wide range of podcasts. Connect with your audience in real-time, and track your podcast's performance with in-depth analytics.
         </p>
 
         <Button type='primary'>Get Started</Button>
